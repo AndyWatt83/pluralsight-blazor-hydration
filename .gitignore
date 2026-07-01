@@ -1,0 +1,44 @@
+## .NET / Visual Studio
+bin/
+obj/
+out/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Bb]in/
+[Oo]bj/
+
+## User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Visual Studio / Rider / VS Code
+.vs/
+.vscode/
+.idea/
+*.rsuser
+
+## Build results / packages
+[Pp]ackages/
+*.nupkg
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+## ASP.NET / Blazor
+publish/
+*.publishsettings
+appsettings.*.local.json
+
+## Test results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.coverage
+*.coveragexml
+
+## OS
+.DS_Store
+Thumbs.db
