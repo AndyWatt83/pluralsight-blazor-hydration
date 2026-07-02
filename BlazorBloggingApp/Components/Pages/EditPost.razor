@@ -1,0 +1,84 @@
+@page "/edit-post/{PostId:guid}"
+@using BlazorBloggingApp.Models
+@using BlazorBloggingApp.Services
+@using System.ComponentModel.DataAnnotations
+@inject IBlogApiClient Api
+@inject NavigationManager Nav
+
+@if (_loading)
+{
+    <div class="loading alert alert-info" role="status">
+        <p class="mb-0">Loading post...</p>
+    </div>
+}
+else if (_post is not null)
+{
+    <article class="card shadow-sm edit-post">
+        <div class="card-body">
+            <h2 class="card-title mb-3">Edit Post</h2>
+            <EditForm Model="@this" OnValidSubmit="ShowConfirmation">
+                <DataAnnotationsValidator />
+
+                <div class="mb-3">
+                    <label class="form-label" for="title">Title</label>
+                    <InputText class="title-input form-control" id="title" @bind-Value="Title" />
+                    <ValidationMessage For="@(() => Title)" class="validation-message text-danger" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="content">Content</label>
+                    <InputTextArea class="content-input form-control" id="content" rows="6" @bind-Value="Content" />
+                    <ValidationMessage For="@(() => Content)" class="validation-message text-danger" />
+                </div>
+
+                <button type="submit" class="btn btn-primary">Save</button>
+            </EditForm>
+        </div>
+    </article>
+
+    <ConfirmDialog @bind-IsVisible="_showConfirm"
+                   Message="This post is published. Are you sure you want to change it?"
+                   OnConfirmed="HandleSubmit" />
+}
+
+@code {
+    [Parameter] public Guid PostId { get; set; }
+
+    [Required(ErrorMessage = "Title is required")]
+    public string Title { get; set; } = default!;
+
+    [Required(ErrorMessage = "Content is required")]
+    public string Content { get; set; } = default!;
+
+    private BlogPost? _post;
+    private bool _loading = true;
+    private bool _showConfirm;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        _post = null;
+
+        try
+        {
+            _post = await Api.GetPostByIdAsync(PostId);
+            if (_post is not null)
+            {
+                Title = _post.Title;
+                Content = _post.Content;
+            }
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void ShowConfirmation() => _showConfirm = true;
+
+    private async Task HandleSubmit()
+    {
+        await Api.UpdatePostAsync(PostId, Title, Content);
+        Nav.NavigateTo($"/post/{PostId}");
+    }
+}

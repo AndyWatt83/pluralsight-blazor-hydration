@@ -1,0 +1,15 @@
+<div class="post-summary card mb-2" @onclick="HandleClick" role="button">
+    <div class="card-body">
+        <h3 class="post-summary-title card-title h6 mb-1">@Title</h3>
+        <p class="post-summary-excerpt card-text small text-body-secondary mb-0">@Excerpt</p>
+    </div>
+</div>
+
+@code {
+    [Parameter] public Guid PostId { get; set; }
+    [Parameter] public string Title { get; set; } = default!;
+    [Parameter] public string Excerpt { get; set; } = default!;
+    [Parameter] public EventCallback<Guid> OnClick { get; set; }
+
+    private async Task HandleClick() => await OnClick.InvokeAsync(PostId);
+}

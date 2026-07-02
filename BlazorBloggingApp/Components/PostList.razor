@@ -1,0 +1,41 @@
+@using BlazorBloggingApp.Models
+
+<div class="post-list">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h2 class="h6 mb-0 text-light">Recent Posts</h2>
+    </div>
+
+    <button type="button" class="post-list-sort btn btn-sm btn-outline-secondary"
+            @onclick="ToggleSort"
+            title="Toggle sort order">
+        @(_newestFirst ? "Newest first" : "Oldest first")
+    </button>
+
+    <div class="post-list-items">
+        @foreach (var post in SortedPosts)
+        {
+            <PostSummary PostId="@post.Id"
+                         Title="@post.Title"
+                         Excerpt="@GetExcerpt(post.Content)"
+                         OnClick="OnPostSelected" />
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public List<BlogPost> Posts { get; set; } = [];
+
+    [Parameter] public EventCallback<Guid> OnPostSelected { get; set; }
+
+    private bool _newestFirst = true;
+
+    private IEnumerable<BlogPost> SortedPosts =>
+    _newestFirst
+        ? Posts.OrderByDescending(p => p.PublishedDate)
+        : Posts.OrderBy(p => p.PublishedDate);
+
+    private void ToggleSort() => _newestFirst = !_newestFirst;
+
+    private static string GetExcerpt(string content)
+        => content.Length > 80 ? content[..80] + "…" : content;
+}

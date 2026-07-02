@@ -1,0 +1,30 @@
+@if (IsVisible)
+{
+    <div class="confirm-backdrop">
+        <div class="confirm-dialog card shadow">
+            <div class="card-body">
+                <p class="confirm-message">@Message</p>
+                <button class="confirm-yes btn btn-primary" @onclick="ConfirmAsync">Yes, save it</button>
+                <button class="confirm-no btn btn-secondary" @onclick="CancelAsync">Cancel</button>
+            </div>
+        </div>
+    </div>
+}
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EventCallback<bool> IsVisibleChanged { get; set; }
+    [Parameter] public string Message { get; set; } = "Are you sure?";
+    [Parameter] public EventCallback OnConfirmed { get; set; }
+
+    private async Task ConfirmAsync()
+    {
+        await OnConfirmed.InvokeAsync();
+        await CloseAsync();
+    }
+    private Task CancelAsync() => CloseAsync();
+    private async Task CloseAsync()
+    {
+        IsVisible = false;
+        await IsVisibleChanged.InvokeAsync(IsVisible);   // the upward half of the binding
+    }
+}

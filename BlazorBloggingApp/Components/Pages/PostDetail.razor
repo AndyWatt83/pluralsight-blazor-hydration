@@ -1,0 +1,109 @@
+@page "/post/{PostId:guid}"
+@using BlazorBloggingApp.Models
+@using BlazorBloggingApp.Services
+@inject IBlogApiClient Api
+@inject IJSRuntime JS
+
+@if (_loading)
+{
+    <div class="loading alert alert-info" role="status">
+        <p class="mb-0">Loading post...</p>
+    </div>
+}
+else if (_error is not null)
+{
+    <div class="error-message alert alert-danger" role="alert">
+        <h4 class="alert-heading">Something went wrong</h4>
+        <p class="mb-0">@_error</p>
+    </div>
+}
+else if (_post is not null)
+{
+    <article class="post-article card shadow-sm">
+        <img class="card-img-top post-header-image" src="@_post.HeaderImageUrl" alt="@_post.Title" />
+        <div class="card-body">
+            <h2 class="card-title mb-3" data-testid="post-title">@_post.Title</h2>
+            <div class="card-text" data-testid="post-content">@_post.Content</div>
+        </div>
+        <div class="card-footer text-body-secondary post-meta">
+            <span class="bi bi-calendar-event me-1"></span>
+            <small class="post-date" title="Published date" data-testid="published-date">@_post.PublishedDate.ToString("d MMMM yyyy")</small>
+            <AuthorizeView>
+                <Authorized>
+                    <a class="edit-link btn btn-sm btn-outline-primary float-end" href="/edit-post/@PostId">Edit</a>
+                </Authorized>
+            </AuthorizeView>
+        </div>
+        @if (RendererInfo.IsInteractive)
+        {
+            <div class="card-footer">
+                <button class="like-button btn btn-outline-danger btn-sm"
+                        @onclick="HandleLike">
+                    &#x2665; @_likeCount
+                </button>
+            </div>
+        }
+        else
+        {
+            <div class="card-footer">
+                <span class="like-static text-muted small">Sign in to like</span>
+            </div>
+        }
+    </article>
+}
+else
+{
+    <div class="not-found alert alert-warning" role="alert">
+        <h4 class="alert-heading">Post not found</h4>
+        <p class="mb-0">The post you're looking for doesn't exist or has been removed.</p>
+    </div>
+}
+
+@code {
+    [Parameter] public Guid PostId { get; set; }
+
+    private BlogPost? _post;
+    private bool _loading = true;
+    private string? _error;
+    private int _likeCount;
+    private string LikeKey => $"likes-{PostId}";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        _error = null;
+        _post = null;
+
+        try
+        {
+            _post = await Api.GetPostByIdAsync(PostId);
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && RendererInfo.IsInteractive)
+        {
+            var stored = await JS.InvokeAsync<string>("localStorage.getItem", LikeKey);
+            if (int.TryParse(stored, out var count))
+            {
+                _likeCount = count;
+                StateHasChanged();
+            }
+        }
+    }
+
+    private async Task HandleLike()
+    {
+        _likeCount++;
+        await JS.InvokeVoidAsync("localStorage.setItem", LikeKey, _likeCount.ToString());
+    }
+}
