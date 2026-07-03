@@ -22,20 +22,19 @@ public class PostSummaryTests : BunitContext
     }
 
     [Fact]
-    public void ClickingFiresOnClickWithPostId()
+    public void LinksToThePostPage()
     {
-        var expectedId = Guid.NewGuid();
-        Guid? receivedId = null;
+        // The summary is a plain anchor, so navigation works under static SSR —
+        // no event callback has to cross a render-mode boundary.
+        var postId = Guid.NewGuid();
 
         var cut = Render<PostSummary>(p => p
-            .Add(ps => ps.PostId, expectedId)
+            .Add(ps => ps.PostId, postId)
             .Add(ps => ps.Title, "Any Title")
             .Add(ps => ps.Excerpt, "Any excerpt")
-            .Add(ps => ps.OnClick, id => receivedId = id)
         );
 
-        cut.Find(".post-summary").Click();
-
-        Assert.Equal(expectedId, receivedId);
+        Assert.Equal($"/post/{postId}",
+            cut.Find(".post-summary").GetAttribute("href"));
     }
 }

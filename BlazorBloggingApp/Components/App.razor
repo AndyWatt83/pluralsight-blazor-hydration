@@ -15,7 +15,10 @@
 </head>
 
 <body>
-    <Routes @rendermode="InteractiveServer"/>
+    @* SSR-first: no global render mode. Pages are static SSR unless a component
+       opts into interactivity deliberately (PostDetail: Auto, EditPost: Server,
+       PostList: Server island in the layout). *@
+    <Routes />
     <ReconnectModal />
     <script src="@Assets["_framework/blazor.web.js"]"></script>
 </body>

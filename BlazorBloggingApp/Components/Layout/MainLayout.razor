@@ -1,6 +1,4 @@
 @inherits LayoutComponentBase
-@inject NavigationManager Nav
-@using BlazorBloggingApp.Services
 
 <div class="page">
     <div class="sidebar">
@@ -8,10 +6,10 @@
             <a class="text-white text-decoration-none fw-semibold" href="/">Blazor Blogging</a>
         </div>
         <div class="sidebar-content px-3 pb-3">
-            @if (_posts is not null)
-            {
-                <PostList Posts="@_posts" OnPostSelected="HandlePostSelected" />
-            }
+            @* An interactive island in an otherwise static layout: PostList owns
+               its own data and sort state, so no callbacks need to cross the
+               static/interactive boundary. *@
+            <PostList @rendermode="InteractiveServer" />
         </div>
     </div>
 
@@ -25,19 +23,6 @@
         </article>
     </main>
 </div>
-
-@code {
-    [Inject] private IBlogApiClient Api { get; set; } = default!;
-
-    private List<BlazorBloggingApp.Models.BlogPost>? _posts;
-
-    protected override async Task OnInitializedAsync()
-    {
-        _posts = await Api.GetAllPostsAsync();
-    }
-
-    private void HandlePostSelected(Guid id) => Nav.NavigateTo($"/post/{id}");
-}
 
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.

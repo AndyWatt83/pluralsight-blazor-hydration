@@ -15,6 +15,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\BlazorBloggingApp\BlazorBloggingApp.csproj" />
+		<ProjectReference Include="..\BlazorBloggingApp.Client\BlazorBloggingApp.Client.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

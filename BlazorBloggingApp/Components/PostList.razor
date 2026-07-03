@@ -1,4 +1,6 @@
 @using BlazorBloggingApp.Models
+@using BlazorBloggingApp.Services
+@inject IBlogApiClient Api
 
 <div class="post-list">
     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -16,23 +18,24 @@
         {
             <PostSummary PostId="@post.Id"
                          Title="@post.Title"
-                         Excerpt="@GetExcerpt(post.Content)"
-                         OnClick="OnPostSelected" />
+                         Excerpt="@GetExcerpt(post.Content)" />
         }
     </div>
 </div>
 
 @code {
-    [Parameter] public List<BlogPost> Posts { get; set; } = [];
-
-    [Parameter] public EventCallback<Guid> OnPostSelected { get; set; }
-
+    private List<BlogPost> _posts = [];
     private bool _newestFirst = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _posts = await Api.GetAllPostsAsync();
+    }
 
     private IEnumerable<BlogPost> SortedPosts =>
     _newestFirst
-        ? Posts.OrderByDescending(p => p.PublishedDate)
-        : Posts.OrderBy(p => p.PublishedDate);
+        ? _posts.OrderByDescending(p => p.PublishedDate)
+        : _posts.OrderBy(p => p.PublishedDate);
 
     private void ToggleSort() => _newestFirst = !_newestFirst;
 

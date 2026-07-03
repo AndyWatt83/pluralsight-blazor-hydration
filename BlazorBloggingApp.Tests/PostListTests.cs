@@ -1,5 +1,7 @@
 using BlazorBloggingApp.Components;
 using BlazorBloggingApp.Models;
+using BlazorBloggingApp.Services;
+using NSubstitute;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,6 +10,16 @@ namespace BlazorBloggingApp.Tests;
 
 public class PostListTests : BunitContext
 {
+    private readonly IBlogApiClient _mockApi = Substitute.For<IBlogApiClient>();
+
+    public PostListTests()
+    {
+        // PostList is a self-contained interactive island: it fetches its own
+        // posts rather than receiving them from the (static) layout.
+        _mockApi.GetAllPostsAsync().Returns(SamplePosts());
+        Services.AddSingleton(_mockApi);
+    }
+
     private static List<BlogPost> SamplePosts() => new()
     {
         new BlogPost { Id = Guid.NewGuid(), Title = "Oldest", Content = "Content one",   PublishedDate = new DateTime(2024, 1, 1) },
@@ -16,30 +28,37 @@ public class PostListTests : BunitContext
     };
 
     [Fact]
-    public void ClickingAPostSummaryFiresOnPostSelected()
+    public void FetchesItsOwnPostsAndRendersThem()
+    {
+        var cut = Render<PostList>();
+
+        cut.WaitForAssertion(() =>
+            Assert.Equal(3, cut.FindAll(".post-summary").Count));
+    }
+
+    [Fact]
+    public void EachSummaryLinksToItsPost()
     {
         var posts = SamplePosts();
+        _mockApi.GetAllPostsAsync().Returns(posts);
         var middlePost = posts.Single(p => p.Title == "Middle");
-        Guid? receivedId = null;
 
-        var cut = Render<PostList>(p => p
-            .Add(pl => pl.Posts, posts)
-            .Add(pl => pl.OnPostSelected, id => receivedId = id)
-        );
+        var cut = Render<PostList>();
 
         // PostList defaults to newest-first, so position [1] is "Middle"
-        cut.FindAll(".post-summary")[1].Click();
-
-        Assert.Equal(middlePost.Id, receivedId);
+        cut.WaitForAssertion(() =>
+            Assert.Equal($"/post/{middlePost.Id}",
+                cut.FindAll(".post-summary")[1].GetAttribute("href")));
     }
 
     [Fact]
     public void TogglingSortReversesOrder()
     {
-        var cut = Render<PostList>(p => p.Add(pl => pl.Posts, SamplePosts()));
+        var cut = Render<PostList>();
 
         // Default: newest first
-        Assert.Contains("Newest", cut.FindAll(".post-summary")[0].TextContent);
+        cut.WaitForAssertion(() =>
+            Assert.Contains("Newest", cut.FindAll(".post-summary")[0].TextContent));
 
         // Toggle — now oldest first
         cut.Find(".post-list-sort").Click();
@@ -53,33 +72,28 @@ public class PostListTests : BunitContext
     [Fact]
     public void SortsNewestFirstByDefault()
     {
-        var cut = Render<PostList>(p => p.Add(pl => pl.Posts, SamplePosts()));
+        var cut = Render<PostList>();
 
-        var summaries = cut.FindAll(".post-summary");
-        Assert.Contains("Newest", summaries[0].TextContent);
-        Assert.Contains("Middle", summaries[1].TextContent);
-        Assert.Contains("Oldest", summaries[2].TextContent);
+        cut.WaitForAssertion(() =>
+        {
+            var summaries = cut.FindAll(".post-summary");
+            Assert.Contains("Newest", summaries[0].TextContent);
+            Assert.Contains("Middle", summaries[1].TextContent);
+            Assert.Contains("Oldest", summaries[2].TextContent);
+        });
     }
 
-    [Fact]
-    public void RendersOnePostSummaryPerPost()
-    {
-        var cut = Render<PostList>(p => p.Add(pl => pl.Posts, SamplePosts()));
-
-        Assert.Equal(3, cut.FindAll(".post-summary").Count);
-    }
-
-    // ── Module 5 Clip 3: Component stubbing tests ───────────────────────────
+    // ── Module 5 Clip 3 (testing course): Component stubbing tests ──────────
 
     [Fact]
     public void RendersCorrectNumberOfPostSummaries_WithStub()
     {
         ComponentFactories.AddStub<PostSummary>();
 
-        var cut = Render<PostList>(p => p.Add(pl => pl.Posts, SamplePosts()));
+        var cut = Render<PostList>();
 
-        var stubs = cut.FindComponents<Stub<PostSummary>>();
-        Assert.Equal(3, stubs.Count);
+        cut.WaitForAssertion(() =>
+            Assert.Equal(3, cut.FindComponents<Stub<PostSummary>>().Count));
     }
 
     [Fact]
@@ -87,13 +101,13 @@ public class PostListTests : BunitContext
     {
         ComponentFactories.AddStub<PostSummary>();
 
-        var posts = SamplePosts();
-        var cut = Render<PostList>(p => p.Add(pl => pl.Posts, posts));
+        var cut = Render<PostList>();
 
         // Newest first by default — first stub should get "Newest"
-        var firstStub = cut.FindComponents<Stub<PostSummary>>()[0];
-        Assert.Equal("Newest",
-            firstStub.Instance.Parameters.Get(ps => ps.Title));
+        cut.WaitForAssertion(() =>
+            Assert.Equal("Newest",
+                cut.FindComponents<Stub<PostSummary>>()[0]
+                    .Instance.Parameters.Get(ps => ps.Title)));
     }
 
     [Fact]
@@ -102,8 +116,9 @@ public class PostListTests : BunitContext
         ComponentFactories.AddStub<PostSummary>(
             @"<div class=""stubbed-summary"">Stub</div>");
 
-        var cut = Render<PostList>(p => p.Add(pl => pl.Posts, SamplePosts()));
+        var cut = Render<PostList>();
 
-        Assert.Equal(3, cut.FindAll(".stubbed-summary").Count);
+        cut.WaitForAssertion(() =>
+            Assert.Equal(3, cut.FindAll(".stubbed-summary").Count));
     }
 }

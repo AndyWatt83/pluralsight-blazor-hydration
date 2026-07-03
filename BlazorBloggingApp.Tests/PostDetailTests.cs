@@ -1,4 +1,4 @@
-using BlazorBloggingApp.Components.Pages;
+using BlazorBloggingApp.Client.Pages;
 using BlazorBloggingApp.Models;
 using BlazorBloggingApp.Services;
 using Microsoft.AspNetCore.Components;

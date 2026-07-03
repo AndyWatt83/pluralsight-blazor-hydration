@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="BlazorBloggingApp.Client/BlazorBloggingApp.Client.csproj" />
   <Project Path="BlazorBloggingApp.Tests/BlazorBloggingApp.Tests.csproj" />
   <Project Path="BlazorBloggingApp/BlazorBloggingApp.csproj" />
   <Folder Name="/Solution Items/">
