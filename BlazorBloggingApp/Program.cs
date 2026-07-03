@@ -59,3 +59,7 @@ app.MapRazorComponents<App>()
 app.Run();
 
 internal record UpdatePostRequest(string Title, string Content);
+
+// Exposes the entry point to WebApplicationFactory for the integration tests
+// that assert on real prerendered HTML (the learning-outcome suite).
+public partial class Program { }
