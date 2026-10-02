@@ -34,7 +34,7 @@ public class InMemoryBlogApiClient : IBlogApiClient
 
     public async Task<BlogPost?> GetPostByIdAsync(Guid id)
     {
-        await Task.Delay(1000); // simulate network latency
+        await Task.Delay(1500); // simulated latency — long enough to see a fetch happen
         return _posts.FirstOrDefault(p => p.Id == id);
     }
 
