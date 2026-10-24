@@ -15,6 +15,9 @@ builder.Services.AddRazorComponents()
 // the Client project's Program.cs.
 builder.Services.AddSingleton<IBlogApiClient, InMemoryBlogApiClient>();
 
+// Diagnostic only: lets InMemoryBlogApiClient log which render path called it.
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddAuthorization();
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<AuthenticationStateProvider, DemoAuthStateProvider>();

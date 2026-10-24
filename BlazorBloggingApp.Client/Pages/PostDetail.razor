@@ -35,6 +35,16 @@ else if (_post is not null)
                 </Authorized>
             </AuthorizeView>
         </div>
+        <div class="render-bar @(RendererInfo.IsInteractive ? "render-bar-interactive" : "render-bar-static")" data-testid="render-bar">
+            <span class="render-bar-k">RendererInfo.Name</span>
+            <span class="render-bar-v">@RendererInfo.Name</span>
+            <span class="render-bar-sep">│</span>
+            <span class="render-bar-k">runs on</span>
+            <span class="render-bar-v">@(RendererInfo.Name == "WebAssembly" ? "your browser" : "the server")</span>
+            <span class="render-bar-sep">│</span>
+            <span class="render-bar-k">interactive</span>
+            <span class="render-bar-v">@(RendererInfo.IsInteractive ? "yes" : "no")</span>
+        </div>
         @if (RendererInfo.IsInteractive)
         {
             <div class="card-footer">

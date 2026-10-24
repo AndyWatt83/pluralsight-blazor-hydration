@@ -1,3 +1,22 @@
 ﻿article.card {
     max-width: 600px;
 }
+
+/* Same colours as the Module 1 demo: purple = static, blue = interactive. */
+.render-bar {
+    display: flex;
+    align-items: baseline;
+    gap: .55rem;
+    flex-wrap: wrap;
+    padding: .5rem 1rem;
+    font-family: "Cascadia Code", Consolas, monospace;
+    font-size: .85rem;
+    color: #fff;
+}
+
+.render-bar-static { background: #6a4fb5; }
+.render-bar-interactive { background: #0b62c4; }
+
+.render-bar-sep { opacity: .4; }
+.render-bar-k { opacity: .75; }
+.render-bar-v { font-weight: 700; }

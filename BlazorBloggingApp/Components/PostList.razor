@@ -24,21 +24,56 @@
 </div>
 
 @code {
-    private List<BlogPost> _posts = [];
+
+    [PersistentState(AllowUpdates = true)]
+    public List<BlogPost>? Posts { get; set; }
+    
     private bool _newestFirst = true;
 
     protected override async Task OnInitializedAsync()
     {
-        _posts = await Api.GetAllPostsAsync();
+        Posts ??= await Api.GetAllPostsAsync();
     }
 
     private IEnumerable<BlogPost> SortedPosts =>
     _newestFirst
-        ? _posts.OrderByDescending(p => p.PublishedDate)
-        : _posts.OrderBy(p => p.PublishedDate);
+        ? (Posts ?? []).OrderByDescending(p => p.PublishedDate)
+        : (Posts ?? []).OrderBy(p => p.PublishedDate);
 
     private void ToggleSort() => _newestFirst = !_newestFirst;
 
     private static string GetExcerpt(string content)
         => content.Length > 80 ? content[..80] + "…" : content;
 }
+
+
+
+
+
+
+
+
+@* @code {
+    private List<BlogPost> Posts = [];
+
+    // [PersistentState(AllowUpdates = true)]
+    // public List<BlogPost>? Posts { get; set; }
+
+    private bool _newestFirst = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Posts ??= await Api.GetAllPostsAsync();
+    }
+
+    private IEnumerable<BlogPost> SortedPosts =>
+    _newestFirst
+        ? (Posts ?? []).OrderByDescending(p => p.PublishedDate)
+        : (Posts ?? []).OrderBy(p => p.PublishedDate);
+
+    private void ToggleSort() => _newestFirst = !_newestFirst;
+
+    private static string GetExcerpt(string content)
+        => content.Length > 80 ? content[..80] + "…" : content;
+}
+ *@

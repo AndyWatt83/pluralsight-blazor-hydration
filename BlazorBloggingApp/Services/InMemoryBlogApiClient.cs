@@ -2,7 +2,9 @@ using BlazorBloggingApp.Models;
 
 namespace BlazorBloggingApp.Services;
 
-public class InMemoryBlogApiClient : IBlogApiClient
+public class InMemoryBlogApiClient(
+    ILogger<InMemoryBlogApiClient> logger,
+    IHttpContextAccessor httpContextAccessor) : IBlogApiClient
 {
     private readonly List<BlogPost> _posts =
     [
@@ -34,12 +36,16 @@ public class InMemoryBlogApiClient : IBlogApiClient
 
     public async Task<BlogPost?> GetPostByIdAsync(Guid id)
     {
-        await Task.Delay(1500); // simulated latency — long enough to see a fetch happen
+        logger.LogInformation("Fetching post {PostId} [{Caller}]", id, DescribeCaller());
+        
+        if (IsInteractiveCaller()) await Task.Delay(2000); // simulated latency for interactive call — long enough to see a fetch happen
+
         return _posts.FirstOrDefault(p => p.Id == id);
     }
 
     public async Task<List<BlogPost>> GetAllPostsAsync()
     {
+        logger.LogInformation("Fetching all posts [{Caller}]", DescribeCaller());
         return _posts.ToList();
     }
 
@@ -52,5 +58,37 @@ public class InMemoryBlogApiClient : IBlogApiClient
             post.Content = content;
         }
         return Task.CompletedTask;
+    }
+
+    // Diagnostic only. This singleton can't know who called it, so it infers the
+    // render path from the ambient HTTP request: none (or the /_blazor socket) is
+    // the circuit, /api is the WebAssembly client's HTTP call, anything else is a
+    // server render of a page. Enhanced navigation fetches send this Accept value.
+    private string DescribeCaller()
+    {
+        var request = httpContextAccessor.HttpContext?.Request;
+        if (request is null || request.Path.StartsWithSegments("/_blazor"))
+        {
+            return "SignalR circuit";
+        }
+
+        if (request.Path.StartsWithSegments("/api"))
+        {
+            return $"WASM via HTTP {request.Method} {request.Path}";
+        }
+
+        var enhancedNav = request.Headers.Accept.ToString()
+            .Contains("blazor-enhanced-nav=on", StringComparison.OrdinalIgnoreCase);
+        return $"SSR {(enhancedNav ? "enhanced nav" : "full load")} {request.Path}";
+    }
+
+    // Same inference as DescribeCaller: the circuit (Server) or the /api call
+    // (WebAssembly) means an interactive component is fetching.
+    private bool IsInteractiveCaller()
+    {
+        var request = httpContextAccessor.HttpContext?.Request;
+        return request is null
+            || request.Path.StartsWithSegments("/_blazor")
+            || request.Path.StartsWithSegments("/api");
     }
 }
