@@ -37,11 +37,16 @@ public class InMemoryBlogApiClient(
     public async Task<BlogPost?> GetPostByIdAsync(Guid id)
     {
         logger.LogInformation("Fetching post {PostId} [{Caller}]", id, DescribeCaller());
-        
-        if (IsInteractiveCaller()) await Task.Delay(2000); // simulated latency for interactive call — long enough to see a fetch happen
+
+        // simulated latency for interactive call — long enough to see a fetch happen
+        if (IsInteractiveCaller()) await Task.Delay(2000); 
 
         return _posts.FirstOrDefault(p => p.Id == id);
     }
+
+
+
+
 
     public async Task<List<BlogPost>> GetAllPostsAsync()
     {

@@ -1,5 +1,7 @@
 @page "/post/{PostId:guid}"
-@rendermode InteractiveAuto
+
+@rendermode InteractiveWebAssembly
+
 @using BlazorBloggingApp.Models
 @using BlazorBloggingApp.Services
 @inject IBlogApiClient Api
@@ -18,24 +20,24 @@ else if (_error is not null)
         <p class="mb-0">@_error</p>
     </div>
 }
-else if (_post is not null)
+else if (Post is not null)
 {
     <article class="post-article card shadow-sm">
-        <img class="card-img-top post-header-image" src="@_post.HeaderImageUrl" alt="@_post.Title" />
+        <img class="card-img-top post-header-image" src="@Post.HeaderImageUrl" alt="@Post.Title" />
         <div class="card-body">
-            <h2 class="card-title mb-3" data-testid="post-title">@_post.Title</h2>
-            <div class="card-text" data-testid="post-content">@_post.Content</div>
+            <h2 class="card-title mb-3" data-testid="post-title">@Post.Title</h2>
+            <div class="card-text" data-testid="post-content">@Post.Content</div>
         </div>
         <div class="card-footer text-body-secondary post-meta">
             <span class="bi bi-calendar-event me-1"></span>
-            <small class="post-date" title="Published date" data-testid="published-date">@_post.PublishedDate.ToString("d MMMM yyyy")</small>
+            <small class="post-date" title="Published date" data-testid="published-date">@Post.PublishedDate.ToString("d MMMM yyyy")</small>
             <AuthorizeView>
                 <Authorized>
                     <a class="edit-link btn btn-sm btn-outline-primary float-end" href="/edit-post/@PostId">Edit</a>
                 </Authorized>
             </AuthorizeView>
         </div>
-        <div class="render-bar @(RendererInfo.IsInteractive ? "render-bar-interactive" : "render-bar-static")" data-testid="render-bar">
+        <div class="render-bar @(!RendererInfo.IsInteractive ? "render-bar-static" : RendererInfo.Name == "WebAssembly" ? "render-bar-wasm" : "render-bar-interactive")" data-testid="render-bar">
             <span class="render-bar-k">RendererInfo.Name</span>
             <span class="render-bar-v">@RendererInfo.Name</span>
             <span class="render-bar-sep">│</span>
@@ -73,21 +75,28 @@ else
 @code {
     [Parameter] public Guid PostId { get; set; }
 
-    private BlogPost? _post;
-    private bool _loading = true;
+    [PersistentState(AllowUpdates = true)]
+    public BlogPost? Post { get; set; }
+
+    private bool _loading;
     private string? _error;
     private int _likeCount;
     private string LikeKey => $"likes-{PostId}";
 
     protected override async Task OnParametersSetAsync()
     {
+        if (Post is not null && Post.Id == PostId)
+        {
+            return;
+        }
+
         _loading = true;
         _error = null;
-        _post = null;
+        Post = null;
 
         try
         {
-            _post = await Api.GetPostByIdAsync(PostId);
+            Post = await Api.GetPostByIdAsync(PostId);
         }
         catch (Exception ex)
         {

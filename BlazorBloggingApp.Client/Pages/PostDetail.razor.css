@@ -2,7 +2,7 @@
     max-width: 600px;
 }
 
-/* Same colours as the Module 1 demo: purple = static, blue = interactive. */
+/* Module 1 colours: purple = static, blue = interactive (Server). Green = interactive (WebAssembly). */
 .render-bar {
     display: flex;
     align-items: baseline;
@@ -16,6 +16,7 @@
 
 .render-bar-static { background: #6a4fb5; }
 .render-bar-interactive { background: #0b62c4; }
+.render-bar-wasm { background: #2a7d4f; }
 
 .render-bar-sep { opacity: .4; }
 .render-bar-k { opacity: .75; }
