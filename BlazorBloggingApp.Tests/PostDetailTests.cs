@@ -17,6 +17,7 @@ public class PostDetailTests : BunitContext
     public PostDetailTests()
     {
         Services.AddSingleton(_mockApi);
+        Services.AddSingleton(new AppState()); // PostDetail reads the theme (Module 4)
         _authContext = this.AddAuthorization();
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
         JSInterop.Mode = JSRuntimeMode.Loose;

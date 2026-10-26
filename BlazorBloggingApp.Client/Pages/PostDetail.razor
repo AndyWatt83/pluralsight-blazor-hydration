@@ -6,6 +6,7 @@
 @using BlazorBloggingApp.Services
 @inject IBlogApiClient Api
 @inject IJSRuntime JS
+@inject AppState AppState
 
 @if (_loading)
 {
@@ -22,7 +23,7 @@ else if (_error is not null)
 }
 else if (Post is not null)
 {
-    <article class="post-article card shadow-sm">
+    <article class="post-article card shadow-sm @(AppState.IsDark ? "text-bg-dark" : null)">
         <img class="card-img-top post-header-image" src="@Post.HeaderImageUrl" alt="@Post.Title" />
         <div class="card-body">
             <h2 class="card-title mb-3" data-testid="post-title">@Post.Title</h2>
@@ -46,6 +47,9 @@ else if (Post is not null)
             <span class="render-bar-sep">│</span>
             <span class="render-bar-k">interactive</span>
             <span class="render-bar-v">@(RendererInfo.IsInteractive ? "yes" : "no")</span>
+            <span class="render-bar-sep">│</span>
+            <span class="render-bar-k">theme</span>
+            <span class="render-bar-v">@AppState.Theme</span>
         </div>
         @if (RendererInfo.IsInteractive)
         {

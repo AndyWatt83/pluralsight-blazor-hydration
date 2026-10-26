@@ -14,4 +14,7 @@ builder.Services.AddAuthorizationCore();
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<AuthenticationStateProvider, DemoAuthStateProvider>();
 
+// In the browser there's only one user, so one AppState is right.
+builder.Services.AddSingleton<AppState>();
+
 await builder.Build().RunAsync();

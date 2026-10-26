@@ -23,6 +23,7 @@ public class PersistedStateTests : BunitContext, IClassFixture<BlogAppFixture>
     {
         _app = app;
         Services.AddSingleton(_mockApi);
+        Services.AddSingleton(new AppState()); // PostDetail reads the theme (Module 4)
         this.AddAuthorization();
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
         JSInterop.Mode = JSRuntimeMode.Loose;
