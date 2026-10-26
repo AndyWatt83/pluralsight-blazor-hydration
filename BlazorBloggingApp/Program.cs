@@ -57,11 +57,24 @@ app.MapPut("/api/posts/{id:guid}", async (Guid id, UpdatePostRequest update, IBl
     return Results.NoContent();
 });
 
-// The theme toggle posts here.
-app.MapPost("/preferences/theme", (AppState appState, [FromForm] string theme, [FromForm] string returnUrl) =>
+// The theme lives in a cookie, so it arrives with every request...
+app.MapPost("/preferences/theme", (HttpContext context, [FromForm] string theme, [FromForm] string returnUrl) =>
 {
-    appState.Theme = theme;
+    context.Response.Cookies.Append("theme", theme, new CookieOptions
+    {
+        HttpOnly = true,
+        SameSite = SameSiteMode.Lax,
+        MaxAge = TimeSpan.FromDays(365)
+    });
     return Results.LocalRedirect(returnUrl);
+});
+
+// ...and each request copies it into that user's AppState before rendering.
+app.Use(async (context, next) =>
+{
+    var appState = context.RequestServices.GetRequiredService<AppState>();
+    appState.Theme = context.Request.Cookies["theme"] ?? "light";
+    await next();
 });
 
 app.MapStaticAssets();
