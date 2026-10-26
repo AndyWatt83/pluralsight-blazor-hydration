@@ -2,6 +2,7 @@ using BlazorBloggingApp.Components;
 using BlazorBloggingApp.Models;
 using BlazorBloggingApp.Services;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,7 +10,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
-    .AddInteractiveWebAssemblyComponents();
+    .AddInteractiveWebAssemblyComponents()
+    .RegisterPersistentService<AppState>(RenderMode.InteractiveWebAssembly);
 
 // The in-memory client doubles as the app's data store, so it stays a singleton
 // on the server. WebAssembly clients get the HTTP implementation instead — see
