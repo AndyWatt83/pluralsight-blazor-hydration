@@ -1,0 +1,13 @@
+@using BlazorBloggingApp.Services
+@inject AppState AppState
+@inject NavigationManager Navigation
+
+@* A plain form post - no interactivity involved. *@
+<form method="post" action="/preferences/theme" class="theme-toggle">
+    <AntiforgeryToken />
+    <input type="hidden" name="theme" value="@(AppState.IsDark ? "light" : "dark")" />
+    <input type="hidden" name="returnUrl" value="@("/" + Navigation.ToBaseRelativePath(Navigation.Uri))" />
+    <button type="submit" class="btn btn-sm btn-outline-secondary">
+        @(AppState.IsDark ? "Light theme" : "Dark theme")
+    </button>
+</form>

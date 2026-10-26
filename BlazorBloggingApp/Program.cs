@@ -2,6 +2,7 @@ using BlazorBloggingApp.Components;
 using BlazorBloggingApp.Models;
 using BlazorBloggingApp.Services;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +22,9 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddAuthorization();
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<AuthenticationStateProvider, DemoAuthStateProvider>();
+
+// One AppState for the whole app.
+builder.Services.AddSingleton<AppState>();
 
 var app = builder.Build();
 
@@ -51,6 +55,13 @@ app.MapPut("/api/posts/{id:guid}", async (Guid id, UpdatePostRequest update, IBl
 {
     await api.UpdatePostAsync(id, update.Title, update.Content);
     return Results.NoContent();
+});
+
+// The theme toggle posts here.
+app.MapPost("/preferences/theme", (AppState appState, [FromForm] string theme, [FromForm] string returnUrl) =>
+{
+    appState.Theme = theme;
+    return Results.LocalRedirect(returnUrl);
 });
 
 app.MapStaticAssets();

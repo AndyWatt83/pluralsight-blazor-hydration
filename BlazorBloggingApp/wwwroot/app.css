@@ -58,3 +58,10 @@ h1:focus {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+
+/* Theme preference, applied by MainLayout from AppState */
+.theme-dark main,
+.theme-dark main .top-row {
+    background-color: #212529;
+    color: #f8f9fa;
+}

@@ -1,6 +1,8 @@
 @inherits LayoutComponentBase
+@using BlazorBloggingApp.Services
+@inject AppState AppState
 
-<div class="page">
+<div class="page @(AppState.IsDark ? "theme-dark" : null)">
     <div class="sidebar">
         <div class="sidebar-brand px-3 py-3">
             <a class="text-white text-decoration-none fw-semibold" href="/">Blazor Blogging</a>
@@ -15,6 +17,7 @@
 
     <main>
         <div class="top-row px-4">
+            <ThemeToggle />
             <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
         </div>
 
