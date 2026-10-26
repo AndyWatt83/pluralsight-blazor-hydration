@@ -23,8 +23,8 @@ builder.Services.AddAuthorization();
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<AuthenticationStateProvider, DemoAuthStateProvider>();
 
-// One AppState for the whole app.
-builder.Services.AddSingleton<AppState>();
+// One AppState per user.
+builder.Services.AddScoped<AppState>();
 
 var app = builder.Build();
 
