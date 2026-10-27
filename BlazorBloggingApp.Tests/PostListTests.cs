@@ -1,6 +1,7 @@
 using BlazorBloggingApp.Components;
 using BlazorBloggingApp.Models;
 using BlazorBloggingApp.Services;
+using Microsoft.AspNetCore.Components;
 using NSubstitute;
 using System;
 using System.Collections.Generic;
@@ -120,5 +121,49 @@ public class PostListTests : BunitContext
 
         cut.WaitForAssertion(() =>
             Assert.Equal(3, cut.FindAll(".stubbed-summary").Count));
+    }
+
+    // ── Bonus: the search filter lives in the URL (?q=) ─────────────────────
+
+    [Fact]
+    public void FilterInTheUrl_ShowsOnlyMatchingPosts()
+    {
+        Services.GetRequiredService<NavigationManager>().NavigateTo("/?q=mid");
+
+        var cut = Render<PostList>();
+
+        cut.WaitForAssertion(() =>
+        {
+            var summary = Assert.Single(cut.FindAll(".post-summary"));
+            Assert.Contains("Middle", summary.TextContent);
+        });
+        Assert.Equal("mid", cut.Find(".post-list-filter input").GetAttribute("value"));
+    }
+
+    [Fact]
+    public void TypingAFilter_PutsItInTheUrl()
+    {
+        var nav = Services.GetRequiredService<NavigationManager>();
+        var cut = Render<PostList>();
+        cut.WaitForAssertion(() => Assert.Equal(3, cut.FindAll(".post-summary").Count));
+
+        cut.Find(".post-list-filter input").Change("newest");
+
+        Assert.EndsWith("?q=newest", nav.Uri);
+        cut.WaitForAssertion(() =>
+            Assert.Contains("Newest", Assert.Single(cut.FindAll(".post-summary")).TextContent));
+    }
+
+    [Fact]
+    public void ClearingTheFilter_RemovesItFromTheUrl()
+    {
+        var nav = Services.GetRequiredService<NavigationManager>();
+        nav.NavigateTo("/?q=mid");
+        var cut = Render<PostList>();
+
+        cut.Find(".post-list-clear").Click();
+
+        Assert.DoesNotContain("q=", nav.Uri);
+        cut.WaitForAssertion(() => Assert.Equal(3, cut.FindAll(".post-summary").Count));
     }
 }

@@ -1,6 +1,7 @@
 @using BlazorBloggingApp.Models
 @using BlazorBloggingApp.Services
 @inject IBlogApiClient Api
+@inject NavigationManager Nav
 
 <div class="post-list">
     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -13,8 +14,22 @@
         @(_newestFirst ? "Newest first" : "Oldest first")
     </button>
 
+    @* The filter lives in the URL (?q=blazor), so it arrives with the request:
+       the SSR load renders the filtered list, and the circuit reads the same
+       URL when the interactivity spins up. *@
+    <div class="post-list-filter input-group input-group-sm my-2">
+        <input type="search" class="form-control" placeholder="Filter posts"
+               aria-label="Filter posts"
+               @bind="_search" @bind:after="ApplyFilter" />
+        @if (!string.IsNullOrEmpty(Filter))
+        {
+            <button type="button" class="post-list-clear btn btn-outline-secondary"
+                    @onclick="ClearFilter" title="Clear filter">✕</button>
+        }
+    </div>
+
     <div class="post-list-items">
-        @foreach (var post in SortedPosts)
+        @foreach (var post in VisiblePosts)
         {
             <PostSummary PostId="@post.Id"
                          Title="@post.Title"
@@ -28,19 +43,43 @@
     [PersistentState(AllowUpdates = true)]
     public List<BlogPost>? Posts { get; set; }
     
+    [SupplyParameterFromQuery(Name = "q")]
+    public string? Filter { get; set; }
+
     private bool _newestFirst = true;
+    private string? _search;
 
     protected override async Task OnInitializedAsync()
     {
         Posts ??= await Api.GetAllPostsAsync();
     }
 
+    protected override void OnParametersSet() => _search = Filter;
+
     private IEnumerable<BlogPost> SortedPosts =>
     _newestFirst
         ? (Posts ?? []).OrderByDescending(p => p.PublishedDate)
         : (Posts ?? []).OrderBy(p => p.PublishedDate);
 
+    // Filters the persisted posts in memory, so a new filter never refetches.
+    private IEnumerable<BlogPost> VisiblePosts =>
+        string.IsNullOrWhiteSpace(Filter)
+            ? SortedPosts
+            : SortedPosts.Where(p => p.Title.Contains(Filter.Trim(), StringComparison.OrdinalIgnoreCase));
+
     private void ToggleSort() => _newestFirst = !_newestFirst;
+
+    private void ApplyFilter()
+    {
+        var q = string.IsNullOrWhiteSpace(_search) ? null : _search.Trim();
+        Nav.NavigateTo(Nav.GetUriWithQueryParameter("q", q), replace: true);
+    }
+
+    private void ClearFilter()
+    {
+        _search = null;
+        ApplyFilter();
+    }
 
     private static string GetExcerpt(string content)
         => content.Length > 80 ? content[..80] + "…" : content;
